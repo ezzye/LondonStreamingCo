@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -12,9 +12,19 @@ interface User {
 
 export default function NavBar() {
   const { user, signOut } = useContext(AuthContext);
+  
+  useEffect(() => {
+    console.log('=== NavBar State ===');
+    console.log('User:', user);
+  }, [user]);
 
   return (
-    <nav className="bg-gray-800 p-4">
+    <nav className="bg-gray-800 p-4 w-full sticky top-0 z-50 shadow-lg">
+      {/* Add visible debug info */}
+      <div className="fixed top-0 right-0 bg-red-500 text-white text-xs p-1">
+        Auth Status: {user ? 'Logged In' : 'Not Logged In'}
+      </div>
+      
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="text-white text-xl font-bold">
           LyricAI

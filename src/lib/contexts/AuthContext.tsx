@@ -25,20 +25,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('=== AuthProvider Mounting ===');
     checkUser();
   }, []);
 
   const checkUser = async () => {
     try {
+      console.log('Checking user authentication...');
       const currentUser = await getCurrentUser();
-      const session = await fetchAuthSession();
+      console.log('Current user data:', currentUser);
+      
       setUser({
         username: currentUser.username,
         email: currentUser.signInDetails?.loginId
       });
+      console.log('User set successfully');
     } catch (error) {
+      console.error('Error checking user:', error);
       setUser(null);
     } finally {
+      console.log('Auth check complete, setting loading to false');
       setLoading(false);
     }
   };
@@ -48,9 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await amplifySignOut();
       setUser(null);
     } catch (error) {
-      console.error("Error signing out", error);
+      console.error('Error signing out:', error);
     }
   };
+
+  console.log('AuthProvider rendering, user:', user, 'loading:', loading);
 
   return (
     <AuthContext.Provider value={{ user, loading, signOut: signOutUser }}>

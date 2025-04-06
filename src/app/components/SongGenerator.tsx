@@ -175,6 +175,20 @@ function SongGeneratorContent() {
 }
 
 export default function SongGenerator() {
+  const { user } = useContext(AuthContext);
+  const router = useRouter();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth/signin');
+    }
+  }, [user, router]);
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <SongGeneratorErrorBoundary>
       <SongGeneratorContent />

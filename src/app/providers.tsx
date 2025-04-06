@@ -1,10 +1,45 @@
 'use client';
 
+// Add this at the very top, before any imports
+console.log('STARTUP: Loading providers.tsx');
+
 import { Amplify } from 'aws-amplify';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import NavBar from './components/NavBar';
 import { cognitoUserPoolsTokenProvider } from '@aws-amplify/auth/cognito';
+import { ResourcesConfig } from 'aws-amplify';
+
+// Configure Amplify immediately
+console.log('🔵 AMPLIFY CONFIG 🔵');
+const config: ResourcesConfig = {
+  Auth: {
+    Cognito: {
+      userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
+      userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+      signUpVerificationMethod: 'code' as const,
+      loginWith: {
+        oauth: {
+          domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
+          scopes: ['email', 'openid', 'profile'],
+          redirectSignIn: [process.env.NEXT_PUBLIC_REDIRECT_SIGN_IN!],
+          redirectSignOut: [process.env.NEXT_PUBLIC_REDIRECT_SIGN_OUT!],
+          responseType: 'code'
+        }
+      }
+    }
+  }
+};
+
+console.log('📝 Amplify Config:', JSON.stringify(config, null, 2));
+
+try {
+  console.log('⚙️ Configuring Amplify...');
+  Amplify.configure(config);
+  console.log('✅ Amplify configured successfully');
+} catch (error) {
+  console.error('❌ Error configuring Amplify:', error);
+}
 
 // Create a wrapper for localStorage that returns Promises
 const keyValueStorage = {
@@ -25,7 +60,6 @@ const keyValueStorage = {
       resolve();
     });
   },
-  // Add the required clear method
   clear: (): Promise<void> => {
     return new Promise((resolve) => {
       localStorage.clear();
@@ -34,36 +68,14 @@ const keyValueStorage = {
   }
 };
 
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
-      userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
-      signUpVerificationMethod: 'code',
-      loginWith: {
-        oauth: {
-          domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
-          scopes: ['email', 'openid', 'profile'],
-          redirectSignIn: [process.env.NEXT_PUBLIC_REDIRECT_SIGN_IN!],
-          redirectSignOut: [process.env.NEXT_PUBLIC_REDIRECT_SIGN_OUT!],
-          responseType: 'code'
-        }
-      }
-    }
-  }
-});
-
-// Use our Promise-based wrapper instead of localStorage directly
 cognitoUserPoolsTokenProvider.setKeyValueStorage(keyValueStorage);
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  console.log('=== Providers Rendering ===');
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <>
-          <NavBar />
-          {children}
-        </>
+        {children}
       </AuthProvider>
     </ErrorBoundary>
   );
